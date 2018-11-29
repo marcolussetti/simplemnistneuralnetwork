@@ -14,3 +14,4 @@ bin           = @["simplemnistneuralnet"]
 requires "nim >= 0.19.0"
 requires "mnist_tools >= 0.1.0"
 requires "simpleneuralnets >= 0.1.0"
+requires "cligen >= 0.9.17"
