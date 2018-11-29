@@ -12,9 +12,9 @@ proc simpleMnistNeuralNet*(
     trainingData: seq[seq[float]],
     trainingLabels: seq[int],
     activation: string,
-    threshold = 0.0
+    threshold = 0.0,
     silent = false
-): Network =
+): tuple[network: Network, accuracy: float] =
     # Hyperparameters
     let outputLayerNumber = 10
     let inputLayerNumber = 784
@@ -47,7 +47,7 @@ proc simpleMnistNeuralNet*(
     # let confMatrix = confusionMatrix(trainingLabels, trainingComputed, 11)
     # echo(confMatrix.join("\n"))
 
-    return network
+    return (network: network, accuracy: accuracy)
 
 proc testMnistNetwork*(
     network: Network,
@@ -66,7 +66,8 @@ proc testMnistNetwork*(
 
     return (a: testingAccuracy, b: testingConfMatrix)
 
-proc normalizeMnistData*(input: seq[tuple[a: int, b: seq[int]]]): tuple[a: seq[
+proc normalizeMnistData*(input: seq[tuple[a: int,
+        b: seq[int]]]): tuple[a: seq[
         int], b: seq[seq[float]]] =
     let (labels, images) = unzip(input)
     let normalizedImages = images.map(proc(image: seq[int]): seq[
@@ -79,17 +80,16 @@ proc randomHyperparameters*(): Hyperparameters =
     let learningRates = [0.01, 0.1, 0.2, 0.3, 0.5]
     let epochsMin = 10
     let epochsMax = 100
-    let hiddenLayers = [1, 2, 3]
+    let hiddenLayers = [1, 1, 1, 2, 2, 3]
     let hiddenLayerMinSize = 10
-    let hiddenLayerMaxSize = 100
+    let hiddenLayerMaxSize = 85
     let activations = ["tanh", "sigmoid"]
 
     return (
         learningRate: rand(learningRates),
         epochs: rand(epochsMax - epochsMin) + epochsMin,
         hiddenLayers: lc[rand(hiddenLayerMaxSize - hiddenLayerMinSize) +
-                hiddenLayerMinSize | (a <- 0..<rand(hiddenLayers)),
-                int],
+                hiddenLayerMinSize | (a <- 0..<rand(hiddenLayers)), int],
         activation: rand(activations)
     )
 
@@ -103,18 +103,18 @@ proc main(
     let (testLabels, testData) = normalizeMnistData(mnistTestData())
 
     if randomBatch == 0:
-        var network = simpleMnistNeuralNet(
+        var (network, predictedAccuracy) = simpleMnistNeuralNet(
             hiddenLayers, learningRate, epochs,
             trainingData, trainingLabels, activation
         )
         let (accuracy, confMatrix) = testMnistNetwork(
             network, testData, testLabels
         )
-        echo("Accuracy: ", accuracy)
+        echo("Accuracy on test data: ", accuracy)
     else:
         var networks = newSeq[tuple[
-            network: Network, accuracy: float, index: int,
-            epochs: int, activation: string, learningRate: float
+            network: Network, predictedAccuracy: float, accuracy: float,
+            index: int, epochs: int, activation: string, learningRate: float
         ]]()
 
         for i in 0..<randomBatch:
@@ -122,7 +122,7 @@ proc main(
             let hyperparameters = randomHyperparameters()
 
             # Train network
-            var network = simpleMnistNeuralNet(
+            var (network, predictedAccuracy) = simpleMnistNeuralNet(
                 hyperparameters.hiddenLayers, hyperparameters.learningRate,
                 hyperparameters.epochs, trainingData, trainingLabels,
                 hyperparameters.activation
@@ -134,23 +134,26 @@ proc main(
             )
 
             networks.add((
-                network: network, accuracy: accuracy, index: i,
+                network: network, predictedAccuracy: predictedAccuracy,
+                accuracy: accuracy, index: i,
                 epochs: hyperparameters.epochs,
                 activation: hyperparameters.activation,
                 learningRate: hyperparameters.learningRate
             ))
 
-            echo("Accuracy: ", accuracy)
+            echo("Accuracy on test data: ", accuracy)
             echo("---")
 
         # Best Performing Network
         var bestPerformingIndex = 0
         for i in 1..<networks.len:
-            if networks[i].accuracy > networks[bestPerformingIndex].accuracy:
+            if networks[i].predictedAccuracy > networks[
+                    bestPerformingIndex].predictedAccuracy:
                 bestPerformingIndex = i
         echo(
-            "Best performing network was #", bestPerformingIndex, ": ",
-            networks[bestPerformingIndex].accuracy
+            "Best performing network was #", bestPerformingIndex,
+                    ". Predicted accuracy: ",
+            networks[bestPerformingIndex].predictedAccuracy
         )
         echo("Network shape: ", networks[bestPerformingIndex].network)
         echo(
@@ -159,6 +162,8 @@ proc main(
             "; Activation Function: ",
             networks[bestPerformingIndex].activation
         )
+        echo("Accuracy on testing data: ",
+                networks[bestPerformingIndex].accuracy)
     return(1)
 
 
