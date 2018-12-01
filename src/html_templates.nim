@@ -281,9 +281,7 @@ proc randomPage*(imagesNumber: int): string = tmpli html"""
     </head>
     <body>
         <div class="header">
-            <a href="/">
-                <h1>Handwritten digits: Random image <button id="shuffle">Randomize!</button></div></h1>
-            </a>
+            <h1><a href="/">Handwritten digits: Random image</a> <button id="shuffle">Randomize!</button></div></h1>
         </div>
         <div class="content">
             <iframe id="content-frame"></iframe>
