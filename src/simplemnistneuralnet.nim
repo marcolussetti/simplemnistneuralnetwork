@@ -148,9 +148,9 @@ proc setupRandomizedHyperparameterNet*(
     )
 
 proc main(
-    random_batch = 0, web_server = false, port = 8080,
-    learning_rate = 0.5, epochs = 20, activation = "tanh", threshold = 0.0,
-    hidden_layers = @[10],
+    web_server = false, port = 8080, threshold = 0.0, random_batch = 0,
+    learning_rate = 0.5, epochs = 20, activation = "tanh",
+    hidden_layers = @[10]
 ): int =
     randomize()
     let (trainingLabels, trainingData) = normalizeMnistData(mnistTrainingData())
@@ -203,4 +203,13 @@ proc main(
         serveMnistWeb(port)
 
 when isMainModule:
-    import cligen; dispatch(main)
+    import cligen; dispatch(main, help = {
+        "web_server": "Enable the web server component, see also port.",
+        "port": "Set the port to run the web server on. If port 80 is used, remember to use sudo.",
+        "threshold": "The minimum output required to consider the number valid and not an 'Unknown' or exceptional case.",
+        "random_batch": "Randomly searches for ideal hyperparameters, ignores all further parameters. 0 disables it, otherwise set to the number of searches to perform.",
+        "learning_rate": "Learning rate or alpha for the backpropagation.",
+        "epochs": "The number of rates to train the network for.",
+        "activation": "The activation function, either 'tanh' for hyperbolic tangent or 'sigmoid' for logistic sigmoid.",
+        "hidden_layers": "The composition of the hidden layers. For instance for 3 hidden layer with 20, 10, and 5 neurons in each, write '20,10,5'"
+    })
