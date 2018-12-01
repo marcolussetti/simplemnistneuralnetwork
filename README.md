@@ -7,9 +7,10 @@ It currently does not install on Microsoft Windows due to some compilations issu
 ## Installation
 
 ### Binary (no requirements)
-Download the binary from the [releases tab](https://github.com/marcolussetti/simplemnistneuralnetwork/releases).
+Download the binary from the [releases tab](https://github.com/marcolussetti/simplemnistneuralnetwork/releases) or directly from the instructions below (might be out of date).
 
 ```sh
+wget https://github.com/marcolussetti/simplemnistneuralnetwork/releases/download/v0.1.2/simplemnistneuralnet
 chmod +x simplemnistneuralnet
 ./simplemnistneuralnet --help
 ```
@@ -87,6 +88,8 @@ Usage:
 ```sh
 ./simplemnistneuralnet -w --port 8080 --learning-rate 0.5 --epochs 55 --hidden-layers=70,85 --activation tanh --threshold 0.5
 ```
+
+Remember that if running on port 80, you might need to prefix this with sudo.
 
 ## Other resources
 This project was used as the basis for [a small presentation](https://docs.google.com/presentation/d/1kodOk7US9mpDTi0C_ZwaWYhkhHkKlndwLZTWr7INLVI) discussing the impact of hyperparameters and methods of choosing hyperparameters.
