@@ -1,4 +1,5 @@
-import asynchttpserver, asyncdispatch, sequtils, strutils, sugar, random
+import asynchttpserver, asyncdispatch, sequtils, strformat, strutils, sugar
+import random
 import rosencrantz
 import mnist_tools, simpleneuralnets
 import ./neuralnet/neuralnet, ./html_templates
@@ -20,12 +21,28 @@ proc serveAllPage(): string =
     return allPage(accuracy, confMatrix, globalNetworkParams.threshold)
 
 proc serveRandomPage(): string =
-    randomize()
-    let randomNumber = rand(globalTestData.len)
+    return randomPage(globalTestLabels.len)
 
-    return $randomNumber
+proc serveImagePage(imageNumber: int): string =
+    if imageNumber < 0 or imageNumber > globalTestLabels.high:
+        return "Image number out of bounds"
+    let imageContent = globalTestData[imageNumber]
+    let imageLabel = globalTestLabels[imageNumber]
+    let denormalizedContent = lc[int(px * 255.0) | (px <- imageContent), int]
+    let imageAscii = mnistCoarseAsciiImage(denormalizedContent)
 
-# return randomPage()
+    let predictionVector = classify(globalNetwork, imageContent)
+    let prediction = singleOutcome(
+        predictionVector, globalNetworkParams.threshold
+    )
+
+    let stringPredictionVector = lc[fmt"{x:1.10f}" | (x <- predictionVector),
+            string]
+
+    return imagePage(
+        imageNumber, imageAscii, imageLabel, prediction,
+        stringPredictionVector
+    )
 
 proc serveMnistWeb(port: int) =
 
@@ -40,7 +57,10 @@ proc serveMnistWeb(port: int) =
             contentType("text/html")[ok(serveRandomPage())]
         ] ~
         pathChunk("/image")[
-            intSegment(proc(n: int): auto = ok($n))
+            intSegment(
+                proc(n: int): auto = return contentType("text/html")[ok(
+                        serveImagePage(n))]
+        )
         ]
     ]
 

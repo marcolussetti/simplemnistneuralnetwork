@@ -17,7 +17,9 @@ proc indexPage*(networkParams: NetworkParameters): string = tmpli html"""
         <title>COMP3710: Handwritten digits classification</title>
     </head>
     <body>
-        <h1>COMP3710: Handwritten digits classification</h1>
+        <a href="/">
+            <h1>COMP3710: Handwritten digits classification</h1>
+        </a>
         <div class="header">
             <p>
                 This project was developed as a final project for the
@@ -135,7 +137,9 @@ proc allPage*(
             </style>
         </head>
         <body>
-            <h1>COMP3710 - Handwritten digits: Test on all test data</h1>
+            <a href="/">
+                <h1>COMP3710 - Handwritten digits: Test on all test data</h1>
+            </a>
             <div class="header">
                 <p>
                     We have just tested the 10,000 images in the test dataset
@@ -145,7 +149,7 @@ proc allPage*(
                 <p>
                     We used a threshold of $threshold. This means that if none
                     of the confidence values was above $threshold, we
-                    treated the image as being not a digit.
+                    treated the image as not being a digit ("unknown").
                 </p>
                 <p>Here are the results:</p>
             </div>
@@ -204,4 +208,95 @@ proc allPage*(
             </div>
         </body>
     </html>
+"""
+
+proc imagePage*(
+    imageNumber: int, imageAscii: string, expected: int, predicted: int,
+    predictionVector: seq[string]
+): string = tmpli html"""
+<html>
+    <head>
+        <title>COMP3710 - Handwritten digits: Test on image #$(imageNumber)</title>
+        <meta charset="UTF-8">
+        <style>
+            table, th, td { border: 1px solid black; }
+            pre { border: 1px solid black; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="/">
+                <h1>COMP3710 - Handwritten digits: Test on image #$(imageNumber)</h1>
+            </a>
+            <p>We've classified image #$(imageNumber) from the MNIST test dataset on the trained neural network.</p>
+        </div>
+        <div class="ascii">
+            <p>This is what the image looks like roughtly:</p>
+            <pre class="image-ascii">
+                $imageAscii
+            </pre>
+        </div>
+        <div class="results">
+            <p>Expected value (label): $expected</p>
+            <p>
+                Predicted value:
+                $if predicted == -1 {
+                    Unknown
+                }
+                $else {
+                    $predicted
+                }
+            <p>
+            <p>Full prediction vector (one-hot encoded output layer):</p>
+            <table>
+                <tr>
+                    $for i in 0..<predictionVector.len {
+                        <th>$i</th>
+                    }
+                </tr>
+                <tr>
+                    $for i in 0..<predictionVector.len {
+                        <td>$(predictionVector[i])</td>
+                    }
+                </tr>
+            </table>
+        </div>
+    </body>
+</html>
+"""
+
+proc randomPage*(imagesNumber: int): string = tmpli html"""
+<html>
+    <head>
+        <title>COMP3710 - Handwritten digits: Random image</title>
+        <meta charset="UTF-8">
+        <style>
+            body { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+            .header { flex: 0; }
+            .content { flex: 1; }
+            .content #content-frame { height: 95%; width: 95% }
+            table, th, td { border: 1px solid black; }
+            pre { border: 1px solid black; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <a href="/">
+                <h1>Handwritten digits: Random image <button id="shuffle">Randomize!</button></div></h1>
+            </a>
+        </div>
+        <div class="content">
+            <iframe id="content-frame"></iframe>
+        </div>
+        <script type="text/javascript">
+            function randomImage() {
+                return Math.floor(Math.random() * $imagesNumber);
+            }
+            document.querySelector("#content-frame").src = "/image/" + randomImage();
+
+            document.querySelector("#shuffle").addEventListener("click", function() {
+                document.querySelector("#content-frame").src = "/image/" + randomImage();
+            });
+        </script>
+    </body>
 """
